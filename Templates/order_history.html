@@ -1,0 +1,64 @@
+{% extends "base.html" %}
+{% block title %}History — Order #{{ order['id'] }} — Furniture Tracker{% endblock %}
+
+{% block content %}
+
+<a href="{{ url_for('view_order', order_id=order['id']) }}" class="btn btn-outline btn-sm" style="margin-bottom:1.25rem;">← Back to Order</a>
+
+<div style="max-width:680px;">
+
+    <div style="margin-bottom:1.75rem;">
+        <h2 style="font-family:'DM Serif Display',serif; font-size:1.5rem; color:var(--wood-dark);">📜 Order #{{ order['id'] }} — Full History</h2>
+        <p style="color:var(--muted); font-size:.88rem; margin-top:.3rem;">
+            {{ order['customer_name'] }} · {{ order['item'] }} · 
+            <span class="badge {{ order['status'].replace(' ', '-') }}" style="font-size:.75rem;">{{ order['status'] }}</span>
+        </p>
+    </div>
+
+    {% if logs %}
+    <div class="timeline">
+        {% for log in logs %}
+        <div class="tl-item">
+            {% set action_class = 'created' if 'Created' in log['action'] else ('deleted' if 'Deleted' in log['action'] else ('restored' if 'Restored' in log['action'] else ('delayed' if 'Delayed' in log['action'] else 'changed'))) %}
+            <div class="tl-dot {{ action_class }}">
+                {% if 'Created' in log['action'] %}✚
+                {% elif 'Deleted' in log['action'] %}✕
+                {% elif 'Restored' in log['action'] %}↩
+                {% elif 'Delayed' in log['action'] %}!
+                {% else %}✎{% endif %}
+            </div>
+            <div class="tl-content">
+                <div style="font-weight:600; font-size:.92rem; color:var(--charcoal);">{{ log['action'] }}</div>
+                {% if log['field'] %}
+                <div style="margin-top:.3rem; font-size:.88rem;">
+                    Field: <strong>{{ log['field'] }}</strong>
+                    {% if log['old_value'] and log['new_value'] %}
+                    &nbsp;—&nbsp;
+                    <span class="old-val">{{ log['old_value'] }}</span>
+                    <span class="audit-arrow">→</span>
+                    <span class="new-val">{{ log['new_value'] }}</span>
+                    {% elif log['new_value'] %}
+                    &nbsp;— <span class="new-val">{{ log['new_value'] }}</span>
+                    {% endif %}
+                </div>
+                {% elif log['new_value'] %}
+                <div style="margin-top:.3rem; font-size:.88rem; color:var(--muted);">{{ log['new_value'] }}</div>
+                {% endif %}
+                <div class="tl-time">
+                    🕐 {{ log['timestamp'] }} &nbsp;·&nbsp; 👤 {{ log['username'] }}
+                </div>
+            </div>
+        </div>
+        {% endfor %}
+    </div>
+    {% else %}
+    <div class="empty">
+        <div class="icon">📭</div>
+        <p><strong>No history yet.</strong></p>
+        <p style="margin-top:.4rem;">Actions on this order will appear here.</p>
+    </div>
+    {% endif %}
+
+</div>
+
+{% endblock %}
