@@ -1,0 +1,145 @@
+{% extends "base.html" %}
+
+{% block title %}Add New Order — Furniture Tracker{% endblock %}
+
+{% block content %}
+
+<!-- Back link -->
+<a href="{{ url_for('index') }}" class="btn btn-outline btn-sm" style="margin-bottom:1.25rem;">← Back to Dashboard</a>
+
+<div class="card" style="max-width:660px;">
+
+    <h2 class="card-title">📋 Add New Order</h2>
+    <p style="color:var(--muted); font-size:.88rem; margin-bottom:1.5rem;">
+        Fill in the customer and order details below. Status starts as <strong>Pending</strong> by default.
+    </p>
+
+    <!--
+        This form POSTs to the same /add URL.
+        Flask's add_order() function handles the POST and saves to the DB.
+    -->
+    <form method="POST" action="{{ url_for('add_order') }}">
+
+        <!-- Two-column grid for name & phone -->
+        <div class="form-grid">
+            <div class="form-group">
+                <label for="customer_name">Customer Name *</label>
+                <input
+                    type="text"
+                    id="customer_name"
+                    name="customer_name"
+                    placeholder="e.g. Ravi Kumar"
+                    required
+                    autofocus
+                >
+            </div>
+            <div class="form-group">
+                <label for="phone">Phone Number *</label>
+                <input
+                    type="tel"
+                    id="phone"
+                    name="phone"
+                    placeholder="e.g. +91 98765 43210"
+                    required
+                >
+            </div>
+        </div>
+
+        <!-- Two-column grid for item & quantity -->
+        <div class="form-grid">
+            <div class="form-group">
+                <label for="item">Furniture Item *</label>
+                <!--
+                    Using a datalist gives the user a dropdown of suggestions
+                    but still allows them to type a custom item.
+                -->
+                <input
+                    type="text"
+                    id="item"
+                    name="item"
+                    placeholder="e.g. Sofa, Chair, Table…"
+                    list="item-suggestions"
+                    required
+                >
+                <datalist id="item-suggestions">
+                    <option value="Sofa">
+                    <option value="Chair">
+                    <option value="Dining Table">
+                    <option value="Coffee Table">
+                    <option value="Wardrobe">
+                    <option value="Bed Frame">
+                    <option value="Bookshelf">
+                    <option value="TV Unit">
+                    <option value="Office Desk">
+                    <option value="Recliner">
+                </datalist>
+            </div>
+            <div class="form-group">
+                <label for="quantity">Quantity *</label>
+                <input
+                    type="number"
+                    id="quantity"
+                    name="quantity"
+                    min="1"
+                    max="9999"
+                    value="1"
+                    required
+                >
+            </div>
+        </div>
+
+        <!-- Two-column grid for dates -->
+        <div class="form-grid">
+            <div class="form-group">
+                <label for="order_date">Order Date *</label>
+                <!--
+                    We pass today's date from Flask so the default
+                    is already set to today.
+                -->
+                <input
+                    type="date"
+                    id="order_date"
+                    name="order_date"
+                    value="{{ today }}"
+                    required
+                >
+            </div>
+            <div class="form-group">
+                <label for="delivery_date">Expected Delivery Date *</label>
+                <input
+                    type="date"
+                    id="delivery_date"
+                    name="delivery_date"
+                    required
+                >
+            </div>
+        </div>
+
+        <!-- Action buttons -->
+        <div style="display:flex; gap:.75rem; margin-top:.5rem;">
+            <button type="submit" class="btn btn-primary">✓ Save Order</button>
+            <a href="{{ url_for('index') }}" class="btn btn-outline">Cancel</a>
+        </div>
+
+    </form>
+
+</div>
+
+<!-- Simple JS to ensure delivery date > order date client-side -->
+<script>
+    const orderDateInput    = document.getElementById('order_date');
+    const deliveryDateInput = document.getElementById('delivery_date');
+
+    // When order date changes, set the minimum allowed delivery date
+    orderDateInput.addEventListener('change', function () {
+        deliveryDateInput.min = this.value;
+        if (deliveryDateInput.value && deliveryDateInput.value <= this.value) {
+            deliveryDateInput.value = '';
+        }
+    });
+
+    // Set initial min on page load
+    deliveryDateInput.min = orderDateInput.value;
+</script>
+
+{% endblock %}

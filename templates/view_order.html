@@ -1,0 +1,90 @@
+{% extends "base.html" %}
+{% block title %}Order #{{ order['id'] }} — Furniture Tracker{% endblock %}
+
+{% block content %}
+
+<a href="{{ url_for('index') }}" class="btn btn-outline btn-sm" style="margin-bottom:1.25rem;">← Back to Dashboard</a>
+
+<div class="card" style="max-width:700px;">
+
+    <!-- Header -->
+    <div style="display:flex; align-items:flex-start; justify-content:space-between; flex-wrap:wrap; gap:.75rem; margin-bottom:1.5rem;">
+        <div>
+            <h2 style="font-family:'DM Serif Display',serif; font-size:1.5rem; color:var(--wood-dark);">Order #{{ order['id'] }}</h2>
+            <p style="color:var(--muted); font-size:.88rem; margin-top:.2rem;">Placed on {{ order['order_date'] }}</p>
+        </div>
+        <div style="display:flex; gap:.5rem; align-items:center; flex-wrap:wrap;">
+            <span class="badge {{ order['status'].replace(' ', '-') }}" style="font-size:.85rem; padding:.4rem 1rem;">
+                {{ order['status'] }}
+            </span>
+            <a href="{{ url_for('order_history', order_id=order['id']) }}" class="btn btn-purple btn-sm">📜 View History</a>
+        </div>
+    </div>
+
+    <!-- Details grid -->
+    <div class="detail-grid" style="margin-bottom:1.75rem;">
+        <div class="detail-item">
+            <label>Customer Name</label>
+            <div class="val">{{ order['customer_name'] }}</div>
+        </div>
+        <div class="detail-item">
+            <label>Phone Number</label>
+            <div class="val">{{ order['phone'] }}</div>
+        </div>
+        <div class="detail-item">
+            <label>Furniture Item</label>
+            <div class="val" style="text-transform:capitalize;">{{ order['item'] }}</div>
+        </div>
+        <div class="detail-item">
+            <label>Quantity</label>
+            <div class="val">{{ order['quantity'] }} unit{{ 's' if order['quantity'] != 1 }}</div>
+        </div>
+        <div class="detail-item">
+            <label>Order Date</label>
+            <div class="val">{{ order['order_date'] }}</div>
+        </div>
+        <div class="detail-item">
+            <label>Expected Delivery</label>
+            <div class="val {% if order['status'] == 'Delayed' %}" style="color:var(--red); font-weight:700;">⚠️ {{ order['delivery_date'] }}{% else %}">{{ order['delivery_date'] }}{% endif %}</div>
+        </div>
+    </div>
+
+    <hr style="border:none; border-top:1.5px solid var(--sand); margin-bottom:1.5rem;">
+
+    <!-- Update Status -->
+    <h3 style="font-weight:600; font-size:.9rem; color:var(--muted); margin-bottom:.75rem; text-transform:uppercase; letter-spacing:.5px;">Update Status</h3>
+    <form method="POST" action="{{ url_for('update_status', order_id=order['id']) }}"
+          style="display:flex; gap:.75rem; align-items:center; flex-wrap:wrap; margin-bottom:1.5rem;">
+        <select name="status" style="flex:1; min-width:160px;">
+            <option value="Pending"     {{ 'selected' if order['status'] == 'Pending' }}>Pending</option>
+            <option value="In Progress" {{ 'selected' if order['status'] == 'In Progress' }}>In Progress</option>
+            <option value="Completed"   {{ 'selected' if order['status'] == 'Completed' }}>Completed</option>
+            <option value="Delayed"     {{ 'selected' if order['status'] == 'Delayed' }}>Delayed</option>
+        </select>
+        <button type="submit" class="btn btn-primary">Save Status</button>
+    </form>
+
+    <hr style="border:none; border-top:1.5px solid var(--sand); margin-bottom:1.5rem;">
+
+    <!-- Update Delivery Date -->
+    <h3 style="font-weight:600; font-size:.9rem; color:var(--muted); margin-bottom:.75rem; text-transform:uppercase; letter-spacing:.5px;">Update Delivery Date</h3>
+    <form method="POST" action="{{ url_for('update_delivery', order_id=order['id']) }}"
+          style="display:flex; gap:.75rem; align-items:center; flex-wrap:wrap; margin-bottom:1.5rem;">
+        <input type="date" name="delivery_date" value="{{ order['delivery_date'] }}" style="flex:1; min-width:160px;">
+        <button type="submit" class="btn btn-outline">Update Date</button>
+    </form>
+
+    <hr style="border:none; border-top:1.5px solid var(--sand); margin-bottom:1.5rem;">
+
+    <!-- Danger zone -->
+    <div style="display:flex; justify-content:space-between; align-items:center; flex-wrap:wrap; gap:.75rem;">
+        <a href="{{ url_for('order_history', order_id=order['id']) }}" class="btn btn-outline">📜 Full Audit History</a>
+        <form method="POST" action="{{ url_for('delete_order', order_id=order['id']) }}"
+              onsubmit="return confirm('Move Order #{{ order['id'] }} to trash?');">
+            <button type="submit" class="btn btn-danger">🗑 Move to Trash</button>
+        </form>
+    </div>
+
+</div>
+
+{% endblock %}

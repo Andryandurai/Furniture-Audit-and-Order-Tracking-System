@@ -1,0 +1,110 @@
+{% extends "base.html" %}
+{% block title %}Audit Logs — Furniture Tracker{% endblock %}
+
+{% block content %}
+
+<div class="section-header" style="margin-bottom:1.5rem;">
+    <div>
+        <h2 style="font-family:'DM Serif Display',serif; font-size:1.75rem; color:var(--wood-dark);">📋 Audit Logs</h2>
+        <p style="color:var(--muted); font-size:.88rem; margin-top:.2rem;">Complete record of every action taken in the system.</p>
+    </div>
+    <a href="{{ url_for('export_audit') }}" class="btn btn-success">⬇ Export CSV</a>
+</div>
+
+<!-- Filters -->
+<div class="card" style="margin-bottom:1.5rem;">
+    <form method="GET" action="{{ url_for('audit_logs') }}">
+        <div class="toolbar">
+            <div class="filter-group">
+                <label>Action Type</label>
+                <select name="action">
+                    <option value="">All Actions</option>
+                    {% for a in actions %}
+                    <option value="{{ a['action'] }}" {{ 'selected' if action_filter == a['action'] }}>{{ a['action'] }}</option>
+                    {% endfor %}
+                </select>
+            </div>
+            <div class="filter-group">
+                <label>User</label>
+                <select name="user">
+                    <option value="">All Users</option>
+                    {% for u in userlist %}
+                    <option value="{{ u['username'] }}" {{ 'selected' if user_filter == u['username'] }}>{{ u['username'] }}</option>
+                    {% endfor %}
+                </select>
+            </div>
+            <div class="filter-group">
+                <label>Date (YYYY-MM-DD)</label>
+                <input type="date" name="date" value="{{ date_filter }}">
+            </div>
+            <div class="filter-group">
+                <label>&nbsp;</label>
+                <div style="display:flex; gap:.5rem;">
+                    <button type="submit" class="btn btn-outline">Apply</button>
+                    {% if action_filter or user_filter or date_filter %}
+                        <a href="{{ url_for('audit_logs') }}" class="btn btn-outline">✕ Clear</a>
+                    {% endif %}
+                </div>
+            </div>
+        </div>
+    </form>
+</div>
+
+<!-- Log Table -->
+<div class="card">
+    <p style="font-size:.85rem; color:var(--muted); margin-bottom:1rem;">
+        Showing <strong>{{ logs|length }}</strong> log entr{{ 'y' if logs|length == 1 else 'ies' }}
+    </p>
+
+    {% if logs %}
+    <div style="display:flex; flex-direction:column;">
+        {% for log in logs %}
+        {% set action_class = 'created' if 'Created' in log['action'] else ('deleted' if 'Deleted' in log['action'] else ('restored' if 'Restored' in log['action'] else ('delayed' if 'Delayed' in log['action'] else 'changed'))) %}
+        <div class="audit-entry">
+            <div class="audit-dot {{ action_class }}">
+                {% if 'Created' in log['action'] %}✚
+                {% elif 'Deleted' in log['action'] %}🗑
+                {% elif 'Restored' in log['action'] %}↩
+                {% elif 'Delayed' in log['action'] %}⚠
+                {% else %}✎{% endif %}
+            </div>
+            <div style="flex:1; min-width:0;">
+                <div style="display:flex; flex-wrap:wrap; gap:.5rem; align-items:center;">
+                    <a href="{{ url_for('view_order', order_id=log['order_id']) }}"
+                       style="font-weight:700; color:var(--wood); font-size:.88rem; text-decoration:none;">
+                        Order #{{ log['order_id'] }}
+                    </a>
+                    <span style="font-weight:600; font-size:.9rem; color:var(--charcoal);">{{ log['action'] }}</span>
+                    {% if log['field'] %}
+                    <span style="font-size:.85rem; color:var(--muted);">· {{ log['field'] }}:</span>
+                    {% if log['old_value'] %}
+                    <span class="old-val" style="font-size:.85rem;">{{ log['old_value'] }}</span>
+                    <span class="audit-arrow">→</span>
+                    {% endif %}
+                    {% if log['new_value'] %}
+                    <span class="new-val" style="font-size:.85rem;">{{ log['new_value'] }}</span>
+                    {% endif %}
+                    {% elif log['new_value'] %}
+                    <span style="font-size:.85rem; color:var(--muted);">{{ log['new_value'] }}</span>
+                    {% endif %}
+                </div>
+                <div class="audit-meta">
+                    🕐 {{ log['timestamp'] }} &nbsp;·&nbsp; 👤 by <strong>{{ log['username'] }}</strong>
+                </div>
+            </div>
+            <div>
+                <a href="{{ url_for('order_history', order_id=log['order_id']) }}" class="btn btn-outline btn-sm">Timeline</a>
+            </div>
+        </div>
+        {% endfor %}
+    </div>
+    {% else %}
+    <div class="empty">
+        <div class="icon">📋</div>
+        <p><strong>No audit logs found.</strong></p>
+        <p style="margin-top:.4rem;">Logs appear here as actions are performed on orders.</p>
+    </div>
+    {% endif %}
+</div>
+
+{% endblock %}
